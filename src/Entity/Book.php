@@ -21,7 +21,7 @@ class Book
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(["getBooks",])]
+    #[Groups(["getBooks", "getAuthors"])]
     private ?string $coverText = null;
 
     #[ORM\ManyToOne(inversedBy: 'Books')]
