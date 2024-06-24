@@ -14,10 +14,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class BookController extends AbstractController
 {
     #[Route('/api/books', name: 'book', methods: ['GET'])]
-    public function getBookList(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
     {
         $bookList = $bookRepository->findAll();
-        $jsonBookList = $serializer->serialize($bookList, 'json');
+        $jsonBookList = $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
 
         return new JsonResponse($jsonBookList, Response::HTTP_OK,[], true);
     }
@@ -25,7 +25,7 @@ class BookController extends AbstractController
     #[Route('/api/books/{id}', name: 'detailBook', methods:['GET'])]
     public function getDetailBook(SerializerInterface $serializer, Book $book): JsonResponse{
 
-            $jsonBook= $serializer->serialize($book, 'json');
-            return new JsonResponse($jsonBook, Response::HTTP_OK,['accept'=>'json'], true);
+            $jsonBook= $serializer->serialize($book, 'json', ['groups' => 'getBooks']);
+            return new JsonResponse($jsonBook, Response::HTTP_OK,[], true);
         }
     }
