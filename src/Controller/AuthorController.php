@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Author;
-use App\Repository\BookRepository;
 use App\Repository\AuthorRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,7 +58,7 @@ class AuthorController extends AbstractController
     }
 
     #[Route("/api/author/{id}", name:"updateAuthor", methods: ["PUT"])]
-    public function updateAuthor(Request $request, SerializerInterface $serializer, Author $currentAuthor, EntityManagerInterface $em, AuthorRepository $authorRepository): JsonResponse
+    public function updateAuthor(Request $request, SerializerInterface $serializer, Author $currentAuthor, EntityManagerInterface $em,): JsonResponse
     { 
     $updatedAuthor = $serializer->deserialize($request->getContent(), Author::class, 'json', [AbstractNormalizer::OBJECT_TO_POPULATE => $currentAuthor]);
     $em->persist($updatedAuthor);
