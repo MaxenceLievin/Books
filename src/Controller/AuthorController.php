@@ -32,18 +32,7 @@ class AuthorController extends AbstractController
         $jsonAuthor = $serializer->serialize($author, 'json', ['groups' => 'getAuthors']);
         return new JsonResponse($jsonAuthor, Response::HTTP_OK, [], true);
     }
-
-    #[Route('/api/author/{id}', name: 'deleteAuthor', methods: ['DELETE'])]
-    public function deleteAuthor(Author $author, EntityManagerInterface $em): JsonResponse
-    {
-
-        $em->remove($author);
-        $em->flush();
-
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
-    }
-
-
+    
     #[Route('/api/author', name:'createAuthor', methods: ['POST'])]
     public function createAuthor(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
@@ -56,6 +45,18 @@ class AuthorController extends AbstractController
 
     return new JsonResponse($jsonAuthor, Response::HTTP_CREATED, ["Location" => $location], true);
     }
+
+    #[Route('/api/author/{id}', name: 'deleteAuthor', methods: ['DELETE'])]
+    public function deleteAuthor(Author $author, EntityManagerInterface $em): JsonResponse
+    {
+
+        $em->remove($author);
+        $em->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+
 
     #[Route("/api/author/{id}", name:"updateAuthor", methods: ["PUT"])]
     public function updateAuthor(Request $request, SerializerInterface $serializer, Author $currentAuthor, EntityManagerInterface $em,): JsonResponse

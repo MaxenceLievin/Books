@@ -10,7 +10,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
 {
     public function onKernelException(ExceptionEvent $event): void
     {
-        // ...
+        
     }
 
     public static function getSubscribedEvents(): array
