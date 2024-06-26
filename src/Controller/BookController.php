@@ -22,18 +22,17 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class BookController extends AbstractController
 {
     #[Route('/api/books', name: 'book', methods: ['GET'])]
-    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
+    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
         $page = $request->get('page', 1);
         $limit = $request->get('limit', 3);
 
         $idCache = "getAllBooks-" . $page . "-" . $limit;
-        $bookList = $cachePool->get($idCache, function(ItemInterface $item) use ($bookRepository, $page, $limit){
+        $jsonBookList = $cache->get($idCache, function (ItemInterface $item) use ($bookRepository, $page, $limit, $serializer) {
             $item->tag("booksCache");
-            return $bookRepository->findAllWithPagination($page, $limit);
+            $bookList = $bookRepository->findAllWithPagination($page, $limit);
+            return $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
         });
-
-        $jsonBookList = $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
 
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
     }
@@ -47,9 +46,11 @@ class BookController extends AbstractController
     }
 
     #[Route('/api/books/{id}', name: 'deleteBook', methods: ['DELETE'])]
-    public function deleteBook(Book $book, EntityManagerInterface $em): JsonResponse
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les doits suffisants pour supprimer un livre')]
+    public function deleteBook(Book $book, EntityManagerInterface $em, TagAwareCacheInterface $cachePool): JsonResponse
     {
 
+        $cachePool->invalidateTags(["booksCache"]);
         $em->remove($book);
         $em->flush();
 
@@ -65,9 +66,9 @@ class BookController extends AbstractController
         $book = $serializer->deserialize($request->getContent(), Book::class, 'json');
 
         // On vérifie les erreurs
-        $errors= $validator->validate($book);
+        $errors = $validator->validate($book);
 
-        if($errors->count()>0) {
+        if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
 
