@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author
@@ -23,6 +24,8 @@ class Author
 
     #[ORM\Column(length: 255)]
     #[Groups(["getBooks", "getAuthors"])]
+    #[Assert\NotBlank(message: "Le nom de l'auteur est obligatoire")]
+    #[Assert\Length(min: 1, max: 255, minMessage: "Le nom doit faire au moins {{limit}} caractères", maxMessage: "Le nom ne peut pas faire plus de {{limit}} caractères")]
     private ?string $lastName = null;
 
     /**
@@ -30,11 +33,11 @@ class Author
      */
     #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'author', orphanRemoval: true)]
     #[groups(["getAuthors"])]
-    private Collection $Books;
+    private Collection $books;
 
     public function __construct()
     {
-        $this->Books = new ArrayCollection();
+        $this->books = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -71,13 +74,13 @@ class Author
      */
     public function getBooks(): Collection
     {
-        return $this->Books;
+        return $this->books;
     }
 
     public function addBook(Book $book): static
     {
-        if (!$this->Books->contains($book)) {
-            $this->Books->add($book);
+        if (!$this->books->contains($book)) {
+            $this->books->add($book);
             $book->setAuthor($this);
         }
 
@@ -86,7 +89,7 @@ class Author
 
     public function removeBook(Book $book): static
     {
-        if ($this->Books->removeElement($book)) {
+        if ($this->books->removeElement($book)) {
             // set the owning side to null (unless already changed)
             if ($book->getAuthor() === $this) {
                 $book->setAuthor(null);
