@@ -16,13 +16,23 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class BookController extends AbstractController
 {
     #[Route('/api/books', name: 'book', methods: ['GET'])]
-    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cachePool): JsonResponse
     {
-        $bookList = $bookRepository->findAll();
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 3);
+
+        $idCache = "getAllBooks-" . $page . "-" . $limit;
+        $bookList = $cachePool->get($idCache, function(ItemInterface $item) use ($bookRepository, $page, $limit){
+            $item->tag("booksCache");
+            return $bookRepository->findAllWithPagination($page, $limit);
+        });
+
         $jsonBookList = $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
 
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
