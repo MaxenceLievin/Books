@@ -21,9 +21,45 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\Annotation\Groups;
 use App\Service\VersioningService;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class BookController extends AbstractController
 {
+
+/**
+* Cette méthode permet de récupérer l'ensemble des livres.
+*
+* @OA\Response(
+* response=200,
+* description="Retourne la liste des livres",
+* @OA\JsonContent(
+* type="array",
+* @OA\Items(ref=@Model(type=Book ::class,groups={"getBooks"}))
+* )
+* )
+* @OA\Parameter(
+* name="page",
+* in="query",
+* description="La page que l'on veut récupérer",
+* @OA\Schema(type="int")
+* )
+*
+* @OA\Parameter(
+* name="limit",
+* in="query",
+* description="Le nombre d'éléments que l'on veut récupérer",
+* @OA\Schema(type="int")
+* )
+* @OA\Tag(name="Books")
+*
+* @param BookRepository $bookRepository
+* @param SerializerInterface $serializer
+* @param Request $request
+* @return JsonResponse
+*/
+
     #[Route('/api/books', name: 'book', methods: ['GET'])]
     public function getAllBooks(BookRepository $bookRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
     {
@@ -33,8 +69,9 @@ class BookController extends AbstractController
         $idCache = "getAllBooks-" . $page . "-" . $limit;
         $jsonBookList = $cache->get($idCache, function (ItemInterface $item) use ($bookRepository, $page, $limit, $serializer) {
             $item->tag("booksCache");
+            $context = SerializationContext::create()->setGroups(['getBooks']);
             $bookList = $bookRepository->findAllWithPagination($page, $limit);
-            return $serializer->serialize($bookList, 'json', ['groups' => 'getBooks']);
+            return $serializer->serialize($bookList, 'json', $context);
         });
 
         return new JsonResponse($jsonBookList, Response::HTTP_OK, [], true);
@@ -91,7 +128,8 @@ class BookController extends AbstractController
         $book->setAuthor($authorRepository->find($idAuthor));
 
 
-        $jsonBook = $serializer->serialize($book, 'json', ['groups' => 'getBooks']);
+        $context = SerializationContext::create()->setGroups(['getBooks']);
+        $jsonBook = $serializer->serialize($book, 'json', $context);
 
         $location = $urlGenerator->generate('detailBook', ['id' => $book->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
