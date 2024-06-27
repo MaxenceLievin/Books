@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation\Since;
 
 /*
 * @Hateoas\Relation(
@@ -31,13 +32,14 @@ use Hateoas\Configuration\Annotation as Hateoas;
 * )
 *
 */
+
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["getBooks","getAuthors"])]
+    #[Groups(["getBooks", "getAuthors"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -53,6 +55,11 @@ class Book
     #[ORM\ManyToOne(inversedBy: 'books')]
     #[Groups(["getBooks",])]
     private ?Author $author = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(["getBooks"])]
+    #[Since("2.0")]
+    private ?string $comment = null;
 
     public function getId(): ?int
     {
@@ -91,6 +98,18 @@ class Book
     public function setAuthor(?Author $author): static
     {
         $this->author = $author;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(string $comment): static
+    {
+        $this->comment = $comment;
 
         return $this;
     }

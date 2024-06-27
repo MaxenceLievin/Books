@@ -25,7 +25,7 @@ class AppFixtures extends Fixture
         $user->setRoles(["ROLE_USER"]);
 
         $user->setPassword($this->userPasswordHasher->hashPassword($user, "password"));
-        $manager ->persist($user);
+        $manager->persist($user);
 
         // Création d'un user admin
         $userAdmin = new User();
@@ -34,7 +34,7 @@ class AppFixtures extends Fixture
 
         $userAdmin->setPassword($this->userPasswordHasher->hashPassword($userAdmin, "password"));
         $manager->persist($userAdmin);
-        
+
         // Création des auteurs.
         $listAuthor = [];
         for ($i = 0; $i < 10; $i++) {
@@ -53,6 +53,7 @@ class AppFixtures extends Fixture
             $book->setTitle("Titre " . $i);
             $book->setCoverText("Quatrième de couverture numéro : " . $i);
             // on lie le livre à un auteur pris au hasard dans le tableau des auteurs.
+            $book->setComment("Commentaire du bibliothécaire " . $i);
             $book->setAuthor($listAuthor[array_rand($listAuthor)]);
             $manager->persist($book);
         }
